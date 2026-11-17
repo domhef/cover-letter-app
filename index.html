@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ogilvy Cover Letter Builder</title>
+<style>
+  :root {
+    --accent: #d6232a;
+    --accent-soft: #fdecec;
+    --green: #1f9d55;
+    --green-soft: #eaf7ef;
+    --amber: #c27c0e;
+    --red: #c62828;
+    --ink: #1c1d21;
+    --muted: #6b7280;
+    --line: #e7e8ec;
+    --bg: #ffffff;
+    --panel: #f7f7f9;
+    --shadow: 0 1px 2px rgba(16,24,40,.04), 0 6px 18px rgba(16,24,40,.07);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    border-bottom: 1px solid var(--line);
+    padding: 18px 24px;
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(8px);
+  }
+  header h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+  header h1 .dot { color: var(--accent); margin: 0 6px; }
+  header h1 .sub { font-weight: 500; color: var(--muted); }
+
+  main {
+    max-width: 1240px; margin: 0 auto; padding: 24px;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px;
+    align-items: start;
+  }
+
+  /* Progress */
+  .progress { margin-bottom: 18px; }
+  .progress-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .progress-label { font-weight: 600; }
+  .progress-hint { color: var(--muted); font-size: 13px; }
+  .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .35s ease; }
+  .bar.done > span { background: var(--green); }
+
+  /* Bubbles */
+  .bubbles { display: flex; flex-direction: column; gap: 12px; }
+  .bubble {
+    background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); transition: border-color .2s, background .2s, box-shadow .2s;
+  }
+  .bubble.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow); }
+  .bubble.answered { border-color: #bfe5cd; background: var(--green-soft); }
+  .bubble.answered.open { border-color: var(--green); box-shadow: 0 0 0 3px #d5f0de, var(--shadow); background: #fff; }
+  .bubble-head {
+    width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    background: none; border: 0; cursor: pointer; text-align: left; font: inherit; color: inherit;
+    border-radius: var(--radius);
+  }
+  .bubble-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .num {
+    flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--panel); color: var(--muted); font-weight: 600; font-size: 13px;
+    transition: background .2s, color .2s;
+  }
+  .bubble.answered .num { background: var(--green); color: #fff; }
+  .bubble.answered .num .n { display: none; }
+  .bubble:not(.answered) .num .tick { display: none; }
+  .title { flex: 1; font-weight: 600; }
+  .title small { display: block; font-weight: 400; color: var(--muted); font-size: 12.5px; }
+  .chev { flex: none; color: var(--muted); transition: transform .2s; }
+  .bubble.open .chev { transform: rotate(180deg); }
+  .bubble-body { display: none; padding: 0 16px 16px 58px; }
+  .bubble.open .bubble-body { display: block; }
+  .question { font-weight: 500; margin: 0 0 6px; }
+  .nudges { margin: 0 0 12px; padding-left: 18px; color: var(--muted); font-size: 13px; }
+  .nudges li { margin: 2px 0; }
+  textarea, input[type="text"] {
+    width: 100%; font: inherit; color: var(--ink); background: #fff;
+    border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea { min-height: 120px; resize: vertical; }
+  textarea:focus, input[type="text"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .field-label { display: block; font-size: 13px; font-weight: 600; margin: 4px 0 6px; }
+  .check { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .check input { accent-color: var(--accent); width: 16px; height: 16px; }
+  .toggle { display: inline-flex; background: var(--panel); border-radius: 99px; padding: 4px; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+  .toggle button {
+    font: inherit; font-size: 13px; border: 0; background: none; padding: 7px 14px; border-radius: 99px; cursor: pointer; color: var(--muted);
+  }
+  .toggle button[aria-pressed="true"] { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .field + .field { margin-top: 14px; }
+  .help { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+
+  /* Letter panel */
+  .letter-col { position: sticky; top: 84px; }
+  .panel {
+    background: var(--panel); border-radius: calc(var(--radius) + 4px); padding: 16px; box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+  .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 2px 4px 14px; flex-wrap: wrap; }
+  .panel-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  .wc { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+  .wc.under { color: var(--amber); background: #fdf4e3; }
+  .wc.ok { color: var(--green); background: var(--green-soft); }
+  .wc.over { color: var(--red); background: #fdecea; }
+  .paper {
+    background: #fffefb; border-radius: 6px; padding: 40px 44px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 10px 30px rgba(0,0,0,.08);
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+    font-size: 15.5px; line-height: 1.65; color: #222;
+    max-height: calc(100vh - 250px); overflow-y: auto;
+  }
+  .paper p { margin: 0 0 14px; padding: 2px 6px; margin-left: -6px; margin-right: -6px; border-radius: 4px; white-space: pre-wrap; }
+  .paper p.signoff { margin-top: 18px; }
+  .paper .empty-hint { color: #9a9a9a; font-style: italic; font-family: inherit; }
+  @keyframes flash { 0% { background: #fff1b8; } 100% { background: transparent; } }
+  .paper p.flash { animation: flash 1.2s ease-out; }
+  .actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .btn {
+    font: inherit; font-size: 14px; font-weight: 600; border-radius: 10px; padding: 9px 14px; cursor: pointer;
+    border: 1px solid var(--line); background: #fff; color: var(--ink); transition: background .15s, border-color .15s;
+  }
+  .btn:hover { border-color: #cfd2d9; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: #b81d23; }
+  .btn.danger { color: var(--red); margin-left: auto; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 14px;
+    transition: opacity .2s, transform .2s; pointer-events: none; z-index: 20;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; padding: 16px; gap: 22px; }
+    header { padding: 14px 16px; }
+    .letter-col { position: static; }
+    .paper { max-height: none; padding: 26px 22px; }
+    .bubble-body { padding: 0 14px 14px 14px; }
+    .btn.danger { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Dominic Heffer<span class="dot">·</span><span class="sub">Ogilvy Account Executive Cover Letter</span></h1>
+</header>
+
+<main>
+  <section aria-label="Questions">
+    <div class="progress">
+      <div class="progress-top">
+        <span class="progress-label" id="progressLabel">0 of 10 answered</span>
+        <span class="progress-hint">Answers save automatically</span>
+      </div>
+      <div class="bar" id="bar"><span></span></div>
+    </div>
+    <div class="bubbles" id="bubbles"></div>
+  </section>
+
+  <section class="letter-col" aria-label="Live cover letter">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Live Cover Letter</h2>
+        <span class="wc under" id="wordCount">0 words · target 300–400</span>
+      </div>
+      <div class="paper" id="letter" aria-live="polite"></div>
+      <div class="actions">
+        <button class="btn primary" id="copyBtn" type="button">Copy letter</button>
+        <button class="btn" id="downloadBtn" type="button">Download as .txt</button>
+        <button class="btn danger" id="clearBtn" type="button">Clear all</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "ogilvy-cover-letter-v1";
+  var SIGNATURE = "Dominic Heffer";
+  var OPENING = "I'm writing to apply for the Account Executive role at Ogilvy UK.";
+  var CLOSING = "Thank you for considering my application. I'd love the chance to talk about how I could support the team.";
+
+  var QUESTIONS = [
+    { id: "q1", short: "Why Ogilvy?", question: "Why Ogilvy?",
+      nudges: ["An Ogilvy ad you remember (e.g. Sainsbury's)", "Behavioural science / Nudgestock", "Working on brands people use every day"] },
+    { id: "q2", short: "Why advertising now?", question: "Why advertising now, after insurance and finance placements?",
+      nudges: ["What finance taught you (client relationships, organisation)", "When you realised you missed the creative side", "Your marketing/advertising studies"] },
+    { id: "q3", short: "A campaign you love", question: "A campaign you love and why.",
+      nudges: ["Funny, emotional or clever?", "Why it stuck with you"] },
+    { id: "q4", short: "Mobile Media", question: "Mobile Media: coordinating the LEGO and ASOS digital vans.",
+      nudges: ["Route planning under pressure", "Filming the campaigns", "Seeing work out in the real world"] },
+    { id: "q5", short: "Mactavish", question: "Mactavish: juggling brokers, policyholders and advisors.",
+      nudges: ["Catching errors in the CRM data", "Building call guides to prepare advisors", "Keeping many plates spinning"] },
+    { id: "q6", short: "Westcoast Developments", question: "Westcoast Developments: marketing and the proptech platform.",
+      nudges: ["Your own marketing ideas", "Prototyping in Figma", "Turning a brief into something real"] },
+    { id: "q7", short: "Energy and keenness to learn", question: "Energy and keenness to learn.",
+      nudges: ["County-level rugby and hockey", "Doing five placements in one year", "The Sotheby's course and sales training day"] },
+    { id: "q8", short: "Art background", question: "Art background and having opinions about creative work.",
+      nudges: ["An eye for colour, composition and simplicity", "Opinions on ads and packaging"] },
+    { id: "q9", short: "Oxford Brookes", optional: true, question: "Oxford Brookes (optional).",
+      nudges: ["Choosing hands-on experience", "Or leave it out"] },
+    { id: "q10", short: "Addressee and tone", special: "addressee", question: "Who is the letter to, and what tone?",
+      nudges: ["Leave the name blank to use “Hiring Team”", "Tone only changes the greeting and sign-off"] }
+  ];
+
+  var defaults = function () {
+    var s = { answers: {}, recipient: "", tone: "warm", toneTouched: false, skipQ9: false, open: "q1" };
+    QUESTIONS.forEach(function (q) { s.answers[q.id] = ""; });
+    return s;
+  };
+
+  var state = defaults();
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      if (saved && typeof saved === "object") {
+        state.answers = Object.assign(state.answers, saved.answers || {});
+        state.recipient = typeof saved.recipient === "string" ? saved.recipient : "";
+        state.tone = saved.tone === "formal" ? "formal" : "warm";
+        state.toneTouched = !!saved.toneTouched;
+        state.skipQ9 = !!saved.skipQ9;
+        state.open = saved.open === null || typeof saved.open === "string" ? saved.open : "q1";
+      }
+    } catch (e) { /* storage unavailable: start fresh */ }
+  }
+
+  var saveTimer = null;
+  function save() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+    }, 150);
+  }
+
+  /* ---------- Light clean-up (never rewrites content) ---------- */
+  function cleanUp(text) {
+    if (!text) return "";
+    var t = String(text).replace(/\s+/g, " ").trim();          // trim / collapse spaces
+    if (!t) return "";
+    t = t.replace(/\s+([,.;:!?])/g, "$1");                     // no space before punctuation
+    t = t.replace(/\bi\b(?=(\s|'|’|[,.;:!?]|$))/g, "I");    // i -> I (also i'm, i've, i'd)
+    t = t.replace(/\b(\w+)(?:\s+\1\b)+/gi, "$1");                // remove doubled words
+    t = t.replace(/^([^A-Za-z0-9]*)([a-z])/, function (m, pre, c) { return pre + c.toUpperCase(); });
+    t = t.replace(/([.!?]["'”’)]?\s+["'“‘(]?)([a-z])/g, function (m, pre, c) { return pre + c.toUpperCase(); });
+    if (!/[.!?…]["'”’)]*$/.test(t)) t += ".";     // full stop if missing
+    return t;
+  }
+
+  function a(id) { return cleanUp(state.answers[id]); }
+  function joinParts(parts) { return parts.filter(Boolean).join(" "); }
+
+  function isAnswered(q) {
+    if (q.special === "addressee") return state.recipient.trim() !== "" || state.toneTouched;
+    if (q.id === "q9" && state.skipQ9) return true;
+    return (state.answers[q.id] || "").trim() !== "";
+  }
+
+  function recipientName() { return state.recipient.trim() || "Hiring Team"; }
+
+  function greeting() {
+    var name = recipientName();
+    if (state.tone === "formal" && name === "Hiring Team") return "Dear Sir or Madam,";
+    return "Dear " + name + ",";
+  }
+
+  function signoff() {
+    if (state.tone === "formal") {
+      return (greeting() === "Dear Sir or Madam," ? "Yours faithfully," : "Yours sincerely,") + "\n" + SIGNATURE;
+    }
+    return "Kind regards,\n" + SIGNATURE;
+  }
+
+  function buildParagraphs() {
+    var about = [a("q7")];
+    if (!state.skipQ9) about.push(a("q9"));
+    return [
+      { key: "greeting", text: greeting() },
+      { key: "opening", text: joinParts([OPENING, a("q1"), a("q3")]) },
+      { key: "why", text: joinParts([a("q2"), a("q8")]) },
+      { key: "experience", text: joinParts([a("q4"), a("q5"), a("q6")]) },
+      { key: "about", text: joinParts(about) },
+      { key: "closing", text: CLOSING },
+      { key: "signoff", text: signoff(), cls: "signoff" }
+    ].filter(function (p) { return p.text; });
+  }
+
+  function letterText() {
+    return buildParagraphs().map(function (p) { return p.text; }).join("\n\n");
+  }
+
+  function countWords(text) {
+    var m = text.trim().match(/\S+/g);
+    return m ? m.length : 0;
+  }
+
+  /* ---------- Rendering ---------- */
+  var letterEl = document.getElementById("letter");
+  var prevText = {};
+  var firstRender = true;
+
+  function renderLetter() {
+    var paras = buildParagraphs();
+    var frag = document.createDocumentFragment();
+    paras.forEach(function (p) {
+      var el = document.createElement("p");
+      el.textContent = p.text;
+      el.dataset.key = p.key;
+      if (p.cls) el.className = p.cls;
+      if (!firstRender && prevText[p.key] !== p.text) {
+        el.classList.add("flash");
+      }
+      frag.appendChild(el);
+    });
+    var anyAnswer = QUESTIONS.some(function (q) { return !q.special && (state.answers[q.id] || "").trim(); });
+    if (!anyAnswer) {
+      var hint = document.createElement("p");
+      hint.className = "empty-hint";
+      hint.textContent = "Start answering the questions on the left — your letter will build here as you type.";
+      frag.insertBefore(hint, frag.childNodes[2] || null);
+    }
+    letterEl.innerHTML = "";
+    letterEl.appendChild(frag);
+
+    prevText = {};
+    paras.forEach(function (p) { prevText[p.key] = p.text; });
+    firstRender = false;
+
+    var words = countWords(letterText());
+    var wc = document.getElementById("wordCount");
+    var cls = words < 300 ? "under" : words > 400 ? "over" : "ok";
+    wc.className = "wc " + cls;
+    wc.textContent = words + " words · target 300–400";
+  }
+
+  function renderProgress() {
+    var n = QUESTIONS.filter(isAnswered).length;
+    document.getElementById("progressLabel").textContent = n + " of " + QUESTIONS.length + " answered";
+    var bar = document.getElementById("bar");
+    bar.firstElementChild.style.width = (n / QUESTIONS.length * 100) + "%";
+    bar.classList.toggle("done", n === QUESTIONS.length);
+    QUESTIONS.forEach(function (q) {
+      var b = document.getElementById("bubble-" + q.id);
+      if (b) b.classList.toggle("answered", isAnswered(q));
+    });
+  }
+
+  function update() {
+    renderLetter();
+    renderProgress();
+    save();
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  var CHEVRON = '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  var TICK = '<svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+  function buildBubbles() {
+    var wrap = document.getElementById("bubbles");
+    wrap.innerHTML = "";
+    QUESTIONS.forEach(function (q, i) {
+      var b = document.createElement("article");
+      b.className = "bubble" + (state.open === q.id ? " open" : "");
+      b.id = "bubble-" + q.id;
+
+      var bodyHTML;
+      var nudges = '<ul class="nudges">' + q.nudges.map(function (n) { return "<li>" + esc(n) + "</li>"; }).join("") + "</ul>";
+      if (q.special === "addressee") {
+        bodyHTML =
+          '<p class="question">' + esc(q.question) + "</p>" + nudges +
+          '<div class="field"><label class="field-label" for="recipient">Recipient name</label>' +
+          '<input type="text" id="recipient" placeholder="Hiring Team" autocomplete="off" value="' + esc(state.recipient) + '"></div>' +
+          '<div class="field"><span class="field-label">Tone</span>' +
+          '<div class="toggle" role="group" aria-label="Tone">' +
+          '<button type="button" data-tone="warm" aria-pressed="' + (state.tone === "warm") + '">Warm and confident</button>' +
+          '<button type="button" data-tone="formal" aria-pressed="' + (state.tone === "formal") + '">Formal</button>' +
+          "</div>" +
+          '<p class="help" id="toneHelp"></p></div>';
+      } else {
+        bodyHTML =
+          '<p class="question">' + esc(q.question) + "</p>" + nudges +
+          '<label class="field-label" for="ta-' + q.id + '" style="position:absolute;left:-9999px">Your answer</label>' +
+          '<textarea id="ta-' + q.id + '" data-id="' + q.id + '" placeholder="Write in your own words…"' +
+          (q.id === "q9" && state.skipQ9 ? " disabled" : "") + ">" + esc(state.answers[q.id] || "") + "</textarea>" +
+          (q.id === "q9" ? '<label class="check"><input type="checkbox" id="skipQ9"' + (state.skipQ9 ? " checked" : "") + "> Leave Oxford Brookes out of the letter</label>" : "");
+      }
+
+      b.innerHTML =
+        '<button class="bubble-head" type="button" aria-expanded="' + (state.open === q.id) + '" aria-controls="body-' + q.id + '">' +
+          '<span class="num"><span class="n">' + (i + 1) + "</span>" + TICK + "</span>" +
+          '<span class="title">' + esc(q.short) + (q.optional ? " <small>Optional</small>" : "") + "</span>" +
+          CHEVRON +
+        "</button>" +
+        '<div class="bubble-body" id="body-' + q.id + '">' + bodyHTML + "</div>";
+
+      wrap.appendChild(b);
+    });
+    updateToneHelp();
+  }
+
+  function updateToneHelp() {
+    var el = document.getElementById("toneHelp");
+    if (!el) return;
+    var s = signoff().split("\n")[0];
+    el.textContent = "Greeting: “" + greeting() + "” · Sign-off: “" + s + "”";
+  }
+
+  function toggleBubble(id) {
+    state.open = state.open === id ? null : id;
+    QUESTIONS.forEach(function (q) {
+      var b = document.getElementById("bubble-" + q.id);
+      var isOpen = state.open === q.id;
+      b.classList.toggle("open", isOpen);
+      b.querySelector(".bubble-head").setAttribute("aria-expanded", String(isOpen));
+    });
+    if (state.open) {
+      var b = document.getElementById("bubble-" + state.open);
+      var field = b.querySelector("textarea:not([disabled]), input[type=text]");
+      if (field) field.focus({ preventScroll: true });
+      var r = b.getBoundingClientRect();
+      if (r.top < 70 || r.top > window.innerHeight - 120) b.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    save();
+  }
+
+  /* ---------- Events ---------- */
+  var bubblesEl = document.getElementById("bubbles");
+
+  bubblesEl.addEventListener("click", function (e) {
+    var head = e.target.closest(".bubble-head");
+    if (head) { toggleBubble(head.parentElement.id.replace("bubble-", "")); return; }
+    var toneBtn = e.target.closest("[data-tone]");
+    if (toneBtn) {
+      state.tone = toneBtn.dataset.tone;
+      state.toneTouched = true;
+      document.querySelectorAll("[data-tone]").forEach(function (btn) {
+        btn.setAttribute("aria-pressed", String(btn.dataset.tone === state.tone));
+      });
+      updateToneHelp();
+      update();
+    }
+  });
+
+  bubblesEl.addEventListener("input", function (e) {
+    var t = e.target;
+    if (t.matches("textarea[data-id]")) {
+      state.answers[t.dataset.id] = t.value;
+      update();
+    } else if (t.id === "recipient") {
+      state.recipient = t.value;
+      updateToneHelp();
+      update();
+    }
+  });
+
+  bubblesEl.addEventListener("change", function (e) {
+    if (e.target.id === "skipQ9") {
+      state.skipQ9 = e.target.checked;
+      var ta = document.getElementById("ta-q9");
+      if (ta) ta.disabled = state.skipQ9;
+      update();
+    }
+  });
+
+  var toastTimer;
+  function toast(msg) {
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove("show"); }, 1800);
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    var text = letterText();
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { toast("Letter copied to clipboard"); },
+        function () { toast(fallbackCopy(text) ? "Letter copied to clipboard" : "Couldn't copy — select the text manually"); });
+    } else {
+      toast(fallbackCopy(text) ? "Letter copied to clipboard" : "Couldn't copy — select the text manually");
+    }
+  });
+
+  document.getElementById("downloadBtn").addEventListener("click", function () {
+    var blob = new Blob([letterText() + "\n"], { type: "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = "Dominic-Heffer-Ogilvy-Cover-Letter.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    toast("Downloaded .txt");
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", function () {
+    if (!window.confirm("Clear all answers? This can't be undone.")) return;
+    state = defaults();
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+    firstRender = true;
+    buildBubbles();
+    update();
+    toast("All answers cleared");
+  });
+
+  /* ---------- Init ---------- */
+  window.addEventListener("pagehide", function () {
+    clearTimeout(saveTimer);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  });
+  load();
+  buildBubbles();
+  renderLetter();
+  renderProgress();
+})();
+</script>
+</body>
+</html>
